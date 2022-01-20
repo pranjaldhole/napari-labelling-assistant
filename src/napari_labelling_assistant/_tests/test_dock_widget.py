@@ -34,6 +34,6 @@ def test_data_fetching(make_napari_viewer, capsys):
     viewer.add_labels(label_array)
 
     data, num_labels, num_layers = fetch_data(viewer.layers)
-    assert data == label_array
+    assert np.array_equal(data[0], label_array)
     assert num_labels == 3
     assert num_layers == 1
