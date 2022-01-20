@@ -1,10 +1,6 @@
 """
-This module is an example of a barebones QWidget plugin for napari
-
-It implements the ``napari_experimental_provide_dock_widget`` hook specification.
-see: https://napari.org/docs/dev/plugins/hook_specifications.html
-
-Replace code below according to your needs.
+This module implements the ``LabellingAssitant`` class
+inheriting from QWidget.
 """
 from napari_plugin_engine import napari_hook_implementation
 from qtpy.QtWidgets import QWidget, QHBoxLayout, QPushButton, QCheckBox
@@ -24,11 +20,11 @@ class LabellingAssistant(QWidget):
         self.viewer = napari_viewer
 
         # Prints stats as stdout
-        btn = QPushButton("Get stats!")
+        btn = QPushButton("Print stats to stdout")
         btn.clicked.connect(self._std_stats)
 
         # Generates a figure
-        bar = QPushButton("View stats!")
+        bar = QPushButton("View pixel distribution")
         bar.clicked.connect(self._generate_plot)
 
         # Boolean for excluding unlabelled region
@@ -41,7 +37,13 @@ class LabellingAssistant(QWidget):
         self.exclude_bg_label.setChecked(False)
         self.exclude_bg_label.toggled.connect(self.onClicked)
 
+        # Boolean for verbose stdout
+        self.verbose_output = QCheckBox("Verbose")
+        self.verbose_output.setChecked(False)
+        self.verbose_output.toggled.connect(self.onClicked)
+
         self.setLayout(QHBoxLayout())
+        self.layout().addWidget(self.verbose_output)
         self.layout().addWidget(btn)
         self.layout().addWidget(bar)
         self.layout().addWidget(self.exclude_unlabelled)
@@ -54,7 +56,7 @@ class LabellingAssistant(QWidget):
         print("napari has", len(self.viewer.layers), "layers")
 
     def _std_stats(self):
-        get_stats(self.viewer.layers)
+        get_stats(self.viewer.layers, self.verbose_output.isChecked())
     
     def _generate_plot(self):
         view_stats(self.viewer.layers,
@@ -70,46 +72,55 @@ def napari_experimental_provide_dock_widget():
 def fetch_data(label_layers):
     data = []
     num_labels = 0
+    num_layers = len(label_layers)
     for i, layer in enumerate(label_layers):
         if type(layer) == Labels:
             array = layer.data
-            print("array shape: ", array.shape)
             data.append(array)
             num_labels = max(num_labels, array.max())
-            #print(f"{layer.name} added!")
         else:
-            #print(f"{layer.name} is an Image!")
             continue
-    return data, num_labels
+    return data, num_labels, num_layers
 
-def get_counts(label_array, max_labels):
+def get_counts(label_array, max_labels, verbose):
     label_list = list(range(max_labels + 1))
 
     u, c = np.unique(label_array, return_counts=True)
 
+    if verbose:
+        print(f"unique labels: {u}\ncount (in pixels): {c}")
+
     count_list = []
     for i in label_list:
         if i not in u:
-            #print('missing label: ', i)
+            if verbose:
+                print('missing label: ', i)
             count_list.append(0)
         else:
             count_list.append(c[np.where(i == u)[0][0]])
 
     return label_list, count_list
 
-def get_counts_from_labels(labels_data, num_labels):
-    unique, counts = get_counts(labels_data[0], num_labels)
+def get_counts_from_labels(labels_data, num_labels, verbose):
+    if verbose:
+        print("\nLayer 0")
+    unique, counts = get_counts(labels_data[0], num_labels, verbose)
     for i in range(1, len(labels_data)):
+        if verbose:
+            print(f"\nLayer: {i}")
         label_array = labels_data[i]
-        u, c = get_counts(label_array, num_labels)
+        u, c = get_counts(label_array, num_labels, verbose)
         assert unique == u, 'Number of label IDs mismatched!'
         counts = [a + b for a, b in zip(counts, c)] #element-wise addition
 
     return unique, counts
 
-def get_stats(label_layers):
-    labels_data, num_labels = fetch_data(label_layers)
-    unique, counts = get_counts_from_labels(labels_data, num_labels)
+def get_stats(label_layers, verbose):
+    labels_data, num_labels, num_layers = fetch_data(label_layers)
+    print("--------------- Generating stats ------------------")
+    print(f"Number of labelling layers being analysed: {num_layers}")
+    unique, counts = get_counts_from_labels(labels_data, num_labels, verbose)
+    print(f"\nAggregated statistics over {num_layers} layers:")
     for i, c in zip(unique, counts):
         if i == 0:
             print(f"Label ID: {i} | Count (in Pixels): {c} | unlabelled pixels")
@@ -117,6 +128,7 @@ def get_stats(label_layers):
             print(f"Label ID: {i} | Count (in Pixels): {c} | background pixels")
         else:
             print(f"Label ID: {i} | Count (in Pixels): {c}")
+    print("--------------- done ------------------")
 
 def view_stats(label_layers, exclude_unlabelled_pixels, exclude_background_pixels):
     labels_data, num_labels = fetch_data(label_layers)
