@@ -3,7 +3,8 @@ This module implements the ``LabellingAssitant`` class
 inheriting from QWidget.
 """
 from napari_plugin_engine import napari_hook_implementation
-from qtpy.QtWidgets import QWidget, QHBoxLayout, QPushButton, QCheckBox
+from qtpy.QtWidgets import (QWidget, QGridLayout,
+                            QPushButton, QCheckBox)
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -42,7 +43,7 @@ class LabellingAssistant(QWidget):
         self.verbose_output.setChecked(False)
         self.verbose_output.toggled.connect(self.onClicked)
 
-        self.setLayout(QHBoxLayout())
+        self.setLayout(QGridLayout())
         self.layout().addWidget(self.verbose_output)
         self.layout().addWidget(btn)
         self.layout().addWidget(bar)
@@ -61,13 +62,14 @@ class LabellingAssistant(QWidget):
     def _generate_plot(self):
         view_stats(self.viewer.layers,
                    self.exclude_unlabelled.isChecked(),
-                   self.exclude_bg_label.isChecked())
+                   self.exclude_bg_label.isChecked(),
+                   self.verbose_output.isChecked())
 
 
 @napari_hook_implementation
 def napari_experimental_provide_dock_widget():
     # you can return either a single widget, or a sequence of widgets
-    return [LabellingAssistant]
+    return LabellingAssistant, {'area': 'left'}
 
 def fetch_data(label_layers):
     data = []
@@ -77,7 +79,7 @@ def fetch_data(label_layers):
         if type(layer) == Labels:
             array = layer.data
             data.append(array)
-            num_labels = max(num_labels, array.max())
+            num_labels = max(num_labels, array.max() + 1)
         else:
             continue
     return data, num_labels, num_layers
@@ -130,22 +132,24 @@ def get_stats(label_layers, verbose):
             print(f"Label ID: {i} | Count (in Pixels): {c}")
     print("--------------- done ------------------")
 
-def view_stats(label_layers, exclude_unlabelled_pixels, exclude_background_pixels):
-    labels_data, num_labels = fetch_data(label_layers)
-    unique, counts = get_counts_from_labels(labels_data, num_labels)
-    if exclude_unlabelled_pixels:
-        start_with = 1
+def view_stats(label_layers, exclude_unlabelled_pixels, exclude_background_pixels, verbose):
+    labels_data, num_labels, num_layers = fetch_data(label_layers)
+    unique, counts = get_counts_from_labels(labels_data, num_labels, verbose)
+
     if exclude_background_pixels: # will also exclude unlabelled pixels
         start_with = 2
+    elif exclude_unlabelled_pixels:
+        start_with = 1
     else:
         start_with = 0
-    plot_bar(unique[start_with:], counts[start_with:])
+    plot_bar(unique[start_with:], counts[start_with:], num_layers)
 
-def plot_bar(unique, counts):
+def plot_bar(unique, counts, num_layers):
     _, _ = plt.subplots(figsize=(15,5))
     LABELS = [str(a) for a in unique] 
     plt.bar(unique, counts)
     plt.xticks(unique, LABELS)
     plt.xlabel('Label ID')
     plt.ylabel('Labels count (in Pixels)')
+    plt.title(f'Aggregated labelled pixels over {num_layers} layers')
     plt.show()
