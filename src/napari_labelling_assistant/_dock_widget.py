@@ -86,7 +86,7 @@ def fetch_data(label_layers):
     return data, num_labels, num_layers
 
 def get_counts(label_array, max_labels, verbose):
-    label_list = list(range(max_labels + 1))
+    label_list = list(range(max_labels))
 
     u, c = np.unique(label_array, return_counts=True)
 
