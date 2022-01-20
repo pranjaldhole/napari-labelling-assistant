@@ -74,9 +74,10 @@ def napari_experimental_provide_dock_widget():
 def fetch_data(label_layers):
     data = []
     num_labels = 0
-    num_layers = len(label_layers)
+    num_layers = 0
     for i, layer in enumerate(label_layers):
         if type(layer) == Labels:
+            num_layers += 1
             array = layer.data
             data.append(array)
             num_labels = max(num_labels, array.max() + 1)
