@@ -1,4 +1,4 @@
-from napari_labelling_assistant import LabellingAssistant
+from napari_labelling_assistant import LabellingAssistant, fetch_data
 import numpy as np
 
 # make_napari_viewer is a pytest fixture that returns a napari viewer object
@@ -18,7 +18,7 @@ def test_example_q_widget(make_napari_viewer, capsys):
     captured = capsys.readouterr()
     assert captured.out == "napari has 1 layers\n"
 
-def test_stats_feature(make_napari_viewer, capsys):
+def test_data_fetching(make_napari_viewer, capsys):
     viewer = make_napari_viewer()
 
     label_array = np.array([[1, 0, 0, 1, 1, 1, 0, 1, 0, 1],
@@ -33,19 +33,7 @@ def test_stats_feature(make_napari_viewer, capsys):
                             [1, 0, 0, 0, 0, 0, 0, 1, 2, 1]])
     viewer.add_labels(label_array)
 
-    my_widget = LabellingAssistant(viewer)
-
-    my_widget._std_stats()
-
-    captured = capsys.readouterr()
-
-    text = """--------------- Generating stats ------------------
-    Number of labelling layers being analysed: 1
-
-    Aggregated statistics over 1 layers:
-    Label ID: 0 | Count (in Pixels): 52 | unlabelled pixels
-    Label ID: 1 | Count (in Pixels): 32 | background pixels
-    Label ID: 2 | Count (in Pixels): 16
-    --------------- done ------------------"""
-
-    assert captured.out == text
+    data, num_labels, num_layers = fetch_data(viewer.layers)
+    assert data == label_array
+    assert num_labels == 3
+    assert num_layers == 1

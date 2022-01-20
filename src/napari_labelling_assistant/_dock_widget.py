@@ -79,7 +79,7 @@ def fetch_data(label_layers):
         if type(layer) == Labels:
             array = layer.data
             data.append(array)
-            num_labels = max(num_labels, array.max())
+            num_labels = max(num_labels, array.max() + 1)
         else:
             continue
     return data, num_labels, num_layers
