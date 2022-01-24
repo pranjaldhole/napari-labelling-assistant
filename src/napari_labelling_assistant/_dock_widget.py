@@ -135,6 +135,7 @@ def get_stats(label_layers, verbose):
 
 def view_stats(label_layers, exclude_unlabelled_pixels, exclude_background_pixels, verbose):
     labels_data, num_labels, num_layers = fetch_data(label_layers)
+    colors_dict = get_colors(num_labels, label_layers[0])
     unique, counts = get_counts_from_labels(labels_data, num_labels, verbose)
 
     if exclude_background_pixels: # will also exclude unlabelled pixels
@@ -143,14 +144,35 @@ def view_stats(label_layers, exclude_unlabelled_pixels, exclude_background_pixel
         start_with = 1
     else:
         start_with = 0
-    plot_bar(unique[start_with:], counts[start_with:], num_layers)
 
-def plot_bar(unique, counts, num_layers):
+    colors_list = []
+    if start_with == 0:
+        # Unlabelled data has no colour assigned, choosing black
+        colors_list.append(np.array([0.0, 0.0, 0.0]))
+
+    for i in range(start_with, num_labels):
+        if i == 0:
+            continue
+        else:
+            colors_list.append(colors_dict[str(i)])
+    plot_bar(unique[start_with:], counts[start_with:], num_layers, colors_list)
+
+def plot_bar(unique, counts, num_layers, color_list):
     _, _ = plt.subplots(figsize=(15,5))
     LABELS = [str(a) for a in unique] 
-    plt.bar(unique, counts)
+    plt.bar(unique, counts, color=color_list)
     plt.xticks(unique, LABELS)
     plt.xlabel('Label ID')
     plt.ylabel('Labels count (in Pixels)')
     plt.title(f'Aggregated labelled pixels over {num_layers} layers')
     plt.show()
+
+def get_colors(num_labels, layer):
+    """
+    label = viewer.layers[0]
+        select any one of the layers
+    """
+    colors_dict = {}
+    for i in range(1, num_labels+1):
+        colors_dict[str(i)] = np.round(layer.get_color(label=i)[:3], 4)
+    return colors_dict
