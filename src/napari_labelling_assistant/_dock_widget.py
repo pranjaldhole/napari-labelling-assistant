@@ -174,5 +174,5 @@ def get_colors(num_labels, layer):
     """
     colors_dict = {}
     for i in range(1, num_labels+1):
-        colors_dict[str(i)] = layer.get_color(label=i)[:3]
+        colors_dict[str(i)] = np.round(layer.get_color(label=i)[:3], 4)
     return colors_dict
