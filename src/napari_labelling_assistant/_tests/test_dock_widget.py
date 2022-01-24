@@ -61,4 +61,4 @@ def test_label_colors_order(make_napari_viewer):
     num_labels = 9
     colors_dict = get_colors(num_labels, viewer.layers[0])
     for i in range(1, num_labels+1):
-        assert default_color_dict[str(i)] == colors_dict[str(i)]
+        assert np.array_equal(default_color_dict[str(i)], colors_dict[str(i)])
