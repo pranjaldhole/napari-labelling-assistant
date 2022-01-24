@@ -1,5 +1,5 @@
 
-__version__ = "0.0.4"
+__version__ = "0.0.5"
 
 from ._dock_widget import (
     napari_experimental_provide_dock_widget,
