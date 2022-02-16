@@ -5,6 +5,7 @@
 [![Python Version](https://img.shields.io/pypi/pyversions/napari-labelling-assistant.svg?color=green)](https://python.org)
 [![tests](https://github.com/pranjaldhole/napari-labelling-assistant/workflows/tests/badge.svg)](https://github.com/pranjaldhole/napari-labelling-assistant/actions)
 [![codecov](https://codecov.io/gh/pranjaldhole/napari-labelling-assistant/branch/main/graph/badge.svg)](https://codecov.io/gh/pranjaldhole/napari-labelling-assistant)
+[![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/napari-labelling-assistant.svg)](https://anaconda.org/conda-forge/napari-labelling-assistant)
 [![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/napari-labelling-assistant)](https://napari-hub.org/plugins/napari-labelling-assistant)
 
 A lightweight plugin for visualizing labelling statistics.
