@@ -11,6 +11,13 @@ A lightweight plugin for visualizing labelling statistics.
 
 ----------------------------------
 
+Download Info
+=============
+| Platform | Downloads | Version |
+| --- | --- | --- |
+| PyPI | [![PyPI downloads](https://img.shields.io/pypi/dm/napari-labelling-assistant.svg)](https://pypistats.org/packages/napari-labelling-assistant) | [![PyPI](https://img.shields.io/pypi/v/napari-labelling-assistant.svg?color=green)](https://pypi.org/project/napari-labelling-assistant)
+| Conda | [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/napari-labelling-assistant.svg)](https://anaconda.org/conda-forge/napari-labelling-assistant) | [![Conda Version](https://img.shields.io/conda/vn/conda-forge/napari-labelling-assistant.svg)](https://anaconda.org/conda-forge/napari-labelling-assistant)
+
 This [napari] plugin was generated with [Cookiecutter] using [@napari]'s [cookiecutter-napari-plugin] template.
 
 <!--
