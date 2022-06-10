@@ -25,7 +25,7 @@ class LabellingAssistant(QWidget):
         btn.clicked.connect(self._std_stats)
 
         # Generates a figure
-        bar = QPushButton("View pixel distribution")
+        bar = QPushButton("View pixels distribution")
         bar.clicked.connect(self._generate_plot)
 
         # Boolean for excluding unlabelled region
