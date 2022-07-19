@@ -10,6 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from napari.layers.labels.labels import Labels
+# from napari.layers.labels import Labels
 
 class LabellingAssistant(QWidget):
     # your QWidget.__init__ can optionally request the napari viewer instance
@@ -61,6 +62,7 @@ class LabellingAssistant(QWidget):
     
     def _generate_plot(self):
         view_stats(self.viewer.layers,
+
                    self.exclude_unlabelled.isChecked(),
                    self.exclude_bg_label.isChecked(),
                    self.verbose_output.isChecked())
@@ -135,7 +137,7 @@ def get_stats(label_layers, verbose):
 
 def view_stats(label_layers, exclude_unlabelled_pixels, exclude_background_pixels, verbose):
     labels_data, num_labels, num_layers = fetch_data(label_layers)
-    colors_dict = get_colors(num_labels, label_layers[0])
+    colors_dict = get_colors(num_labels, label_layers[1])
     unique, counts = get_counts_from_labels(labels_data, num_labels, verbose)
 
     if exclude_background_pixels: # will also exclude unlabelled pixels
