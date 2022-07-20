@@ -73,12 +73,14 @@ def napari_experimental_provide_dock_widget():
     # you can return either a single widget, or a sequence of widgets
     return LabellingAssistant, {'area': 'left'}
 
+
 def fetch_data(label_layers):
     data = []
     num_labels = 0
     num_layers = 0
     for i, layer in enumerate(label_layers):
-        if type(layer) == Labels:
+        print(type(layer))
+        if type(layer) == Labels:                    
             num_layers += 1
             array = layer.data
             data.append(array)
@@ -135,9 +137,19 @@ def get_stats(label_layers, verbose):
             print(f"Label ID: {i} | Count (in Pixels): {c}")
     print("--------------- done ------------------")
 
+# will provide first label layer present in the viewer window else return None
+def get_first_label_layer(label_layers):
+    for layer in label_layers:
+        if type(layer) == Labels:
+            return layer
+    else:
+        return None
+
 def view_stats(label_layers, exclude_unlabelled_pixels, exclude_background_pixels, verbose):
     labels_data, num_labels, num_layers = fetch_data(label_layers)
-    colors_dict = get_colors(num_labels, label_layers[1])
+
+    colors_dict = get_colors(num_labels, get_first_label_layer(label_layers))
+
     unique, counts = get_counts_from_labels(labels_data, num_labels, verbose)
 
     if exclude_background_pixels: # will also exclude unlabelled pixels
