@@ -79,7 +79,6 @@ def fetch_data(label_layers):
     num_labels = 0
     num_layers = 0
     for i, layer in enumerate(label_layers):
-        print(type(layer))
         if type(layer) == Labels:                    
             num_layers += 1
             array = layer.data
