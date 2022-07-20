@@ -2,15 +2,14 @@
 This module implements the ``LabellingAssitant`` class
 inheriting from QWidget.
 """
+import numpy as np
+import matplotlib.pyplot as plt
+
 from napari_plugin_engine import napari_hook_implementation
 from qtpy.QtWidgets import (QWidget, QGridLayout,
                             QPushButton, QCheckBox)
 
-import numpy as np
-import matplotlib.pyplot as plt
-
 from napari.layers.labels.labels import Labels
-# from napari.layers.labels import Labels
 
 class LabellingAssistant(QWidget):
     # your QWidget.__init__ can optionally request the napari viewer instance
@@ -59,10 +58,9 @@ class LabellingAssistant(QWidget):
 
     def _std_stats(self):
         get_stats(self.viewer.layers, self.verbose_output.isChecked())
-    
+
     def _generate_plot(self):
         view_stats(self.viewer.layers,
-
                    self.exclude_unlabelled.isChecked(),
                    self.exclude_bg_label.isChecked(),
                    self.verbose_output.isChecked())
@@ -78,34 +76,34 @@ def fetch_data(label_layers):
     data = []
     num_labels = 0
     num_layers = 0
-    for i, layer in enumerate(label_layers):
-        if type(layer) == Labels:                    
+    for layer in label_layers:
+        if type(layer) == Labels:
             num_layers += 1
             array = layer.data
             data.append(array)
             num_labels = max(num_labels, array.max() + 1)
-        else:
-            continue
     return data, num_labels, num_layers
+
 
 def get_counts(label_array, max_labels, verbose):
     label_list = list(range(max_labels))
 
-    u, c = np.unique(label_array, return_counts=True)
+    labels, count = np.unique(label_array, return_counts=True)
 
     if verbose:
-        print(f"unique labels: {u}\ncount (in pixels): {c}")
+        print(f"unique labels: {labels}\ncount (in pixels): {count}")
 
     count_list = []
-    for i in label_list:
-        if i not in u:
+    for label in label_list:
+        if label not in labels:
             if verbose:
-                print('missing label: ', i)
+                print('missing label: ', label)
             count_list.append(0)
         else:
-            count_list.append(c[np.where(i == u)[0][0]])
+            count_list.append(count[np.where(label == labels)[0][0]])
 
     return label_list, count_list
+
 
 def get_counts_from_labels(labels_data, num_labels, verbose):
     if verbose:
@@ -120,6 +118,7 @@ def get_counts_from_labels(labels_data, num_labels, verbose):
         counts = [a + b for a, b in zip(counts, c)] #element-wise addition
 
     return unique, counts
+
 
 def get_stats(label_layers, verbose):
     labels_data, num_labels, num_layers = fetch_data(label_layers)
@@ -136,18 +135,11 @@ def get_stats(label_layers, verbose):
             print(f"Label ID: {i} | Count (in Pixels): {c}")
     print("--------------- done ------------------")
 
-# will provide first label layer present in the viewer window else return None
-def get_first_label_layer(label_layers):
-    for layer in label_layers:
-        if type(layer) == Labels:
-            return layer
-    else:
-        return None
 
 def view_stats(label_layers, exclude_unlabelled_pixels, exclude_background_pixels, verbose):
     labels_data, num_labels, num_layers = fetch_data(label_layers)
 
-    colors_dict = get_colors(num_labels, get_first_label_layer(label_layers))
+    colors_dict = get_colors(num_labels, label_layers[0])
 
     unique, counts = get_counts_from_labels(labels_data, num_labels, verbose)
 
@@ -164,15 +156,14 @@ def view_stats(label_layers, exclude_unlabelled_pixels, exclude_background_pixel
         colors_list.append(np.array([0.0, 0.0, 0.0]))
 
     for i in range(start_with, num_labels):
-        if i == 0:
-            continue
-        else:
+        if i != 0:
             colors_list.append(colors_dict[str(i)])
     plot_bar(unique[start_with:], counts[start_with:], num_layers, colors_list)
 
+
 def plot_bar(unique, counts, num_layers, color_list):
-    _, _ = plt.subplots(figsize=(15,5))
-    LABELS = [str(a) for a in unique] 
+    _, _ = plt.subplots(figsize=(15, 5))
+    LABELS = [str(a) for a in unique]
     plt.bar(unique, counts, color=color_list)
     plt.xticks(unique, LABELS)
     plt.xlabel('Label ID')
@@ -180,11 +171,13 @@ def plot_bar(unique, counts, num_layers, color_list):
     plt.title(f'Aggregated labelled pixels over {num_layers} layers')
     plt.show()
 
+
 def get_colors(num_labels, layer):
     """
     label = viewer.layers[0]
         select any one of the layers
     """
+    assert type(layer) == Labels, 'Invalid layer type.'
     colors_dict = {}
     for i in range(1, num_labels+1):
         colors_dict[str(i)] = np.round(layer.get_color(label=i)[:3], 4)
